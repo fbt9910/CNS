@@ -14,17 +14,19 @@ jobs:
     strategy:
       matrix:
         include:
-          # Darwin 仅支持 amd64 和 arm64
+          # darwin: 仅支持 amd64 和 arm64
           - goos: darwin
             goarch: amd64
           - goos: darwin
             goarch: arm64
-          # Windows 建议只保留 amd64 和 arm64（arm 可能不稳定）
-          - goos: windows
+          # freebsd
+          - goos: freebsd
+            goarch: 386
+          - goos: freebsd
             goarch: amd64
-          - goos: windows
-            goarch: arm64
-          # Linux 支持多种架构
+          # linux
+          - goos: linux
+            goarch: 386
           - goos: linux
             goarch: amd64
           - goos: linux
@@ -39,6 +41,11 @@ jobs:
             goarch: mips64
           - goos: linux
             goarch: mips64le
+          # windows
+          - goos: windows
+            goarch: 386
+          - goos: windows
+            goarch: amd64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,7 +59,9 @@ jobs:
       - name: Build binaries
         run: |
           echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}"
-          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o CNS-${{ matrix.goos }}-${{ matrix.goarch }}
+          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+            go build -ldflags="-s -w -X main.Version=${{ github.event.inputs.version }}" \
+            -o CNS-${{ matrix.goos }}-${{ matrix.goarch }}
           ls -lh CNS-${{ matrix.goos }}-${{ matrix.goarch }}
 
       - name: Upload artifact
@@ -76,6 +85,8 @@ jobs:
           if git rev-parse "${{ github.event.inputs.version }}" >/dev/null 2>&1; then
             echo "Tag ${{ github.event.inputs.version }} already exists"
           else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
             git tag ${{ github.event.inputs.version }}
             git push origin ${{ github.event.inputs.version }}
           fi
