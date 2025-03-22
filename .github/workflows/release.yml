@@ -16,13 +16,23 @@ jobs:
         goos: [linux, windows, darwin]
         goarch: [amd64, arm64, arm, mips, mipsle, mips64, mips64le]
         exclude:
+          # 排除 Darwin 下不支持的 MIPS 架构
           - goos: darwin
             goarch: mips
           - goos: darwin
-            goarch: mips64
-          - goos: darwin
             goarch: mipsle
           - goos: darwin
+            goarch: mips64
+          - goos: darwin
+            goarch: mips64le
+          # 排除 Windows 下不支持的 MIPS 架构
+          - goos: windows
+            goarch: mips
+          - goos: windows
+            goarch: mipsle
+          - goos: windows
+            goarch: mips64
+          - goos: windows
             goarch: mips64le
     steps:
       - name: Checkout code
@@ -32,6 +42,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
+          cache: false
 
       - name: Build binaries
         run: |
@@ -51,7 +62,7 @@ jobs:
       - name: Checkout code for tag creation
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 获取全部历史记录及所有 tags
+          fetch-depth: 0  # 获取完整历史记录及所有 tags
 
       - name: Create tag if not exists
         run: |
