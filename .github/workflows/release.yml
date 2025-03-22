@@ -1,0 +1,28 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: 编译
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o CNS-linux-amd64
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: CNS-linux-amd64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
