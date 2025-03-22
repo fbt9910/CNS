@@ -1,4 +1,4 @@
-name: Build and Release
+name: Test Manual Run
 
 on:
   workflow_dispatch:
@@ -11,36 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          # Darwin 仅支持 amd64 和 arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          # Windows 支持 amd64, arm64 和 arm（其它架构不支持）
-          - goos: windows
-            goarch: amd64
-          - goos: windows
-            goarch: arm64
-          - goos: windows
-            goarch: arm
-          # Linux 支持较多架构
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: linux
-            goarch: arm
-          - goos: linux
-            goarch: mips
-          - goos: linux
-            goarch: mipsle
-          - goos: linux
-            goarch: mips64
-          - goos: linux
-            goarch: mips64le
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,45 +21,13 @@ jobs:
           go-version: stable
           cache: false
 
-      - name: Build binaries
+      - name: Build binary for Linux amd64
         run: |
-          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o CNS-${{ matrix.goos }}-${{ matrix.goarch }}
-          ls -lh CNS-${{ matrix.goos }}-${{ matrix.goarch }}
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o CNS-linux-amd64
+          ls -lh CNS-linux-amd64
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CNS-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: CNS-${{ matrix.goos }}-${{ matrix.goarch }}
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code for tag creation
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 获取完整历史及所有 tags
-
-      - name: Create tag if not exists
-        run: |
-          git fetch --tags
-          if git rev-parse "${{ github.event.inputs.version }}" >/dev/null 2>&1; then
-            echo "Tag ${{ github.event.inputs.version }} already exists"
-          else
-            git tag ${{ github.event.inputs.version }}
-            git push origin ${{ github.event.inputs.version }}
-          fi
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Publish Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.version }}
-          files: artifacts/**
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: CNS-linux-amd64
+          path: CNS-linux-amd64
