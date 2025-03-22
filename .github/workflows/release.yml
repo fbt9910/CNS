@@ -1,33 +1,14 @@
-name: Test Manual Run
+name: Test Workflow
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version tag, e.g. v6.0.0'
-        required: true
-        default: 'v6.0.0'
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          cache: false
-
-      - name: Build binary for Linux amd64
-        run: |
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o CNS-linux-amd64
-          ls -lh CNS-linux-amd64
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: CNS-linux-amd64
-          path: CNS-linux-amd64
+      - name: Run simple command
+        run: echo "Hello, GitHub Actions!"
