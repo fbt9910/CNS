@@ -13,28 +13,33 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64, arm, mips, mipsle, mips64, mips64le]
-        exclude:
-          # Darwin 平台只支持 amd64 和 arm64
+        include:
+          # Darwin 仅支持 amd64 和 arm64
           - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          # Windows 支持 amd64, arm64 和 arm（其它架构不支持）
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+          - goos: windows
             goarch: arm
-          - goos: darwin
+          # Linux 支持较多架构
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: arm
+          - goos: linux
             goarch: mips
-          - goos: darwin
+          - goos: linux
             goarch: mipsle
-          - goos: darwin
+          - goos: linux
             goarch: mips64
-          - goos: darwin
-            goarch: mips64le
-          # Windows 平台排除不支持的 MIPS 架构
-          - goos: windows
-            goarch: mips
-          - goos: windows
-            goarch: mipsle
-          - goos: windows
-            goarch: mips64
-          - goos: windows
+          - goos: linux
             goarch: mips64le
     steps:
       - name: Checkout code
@@ -51,7 +56,7 @@ jobs:
           CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o CNS-${{ matrix.goos }}-${{ matrix.goarch }}
           ls -lh CNS-${{ matrix.goos }}-${{ matrix.goarch }}
 
-      - name: Upload artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: CNS-${{ matrix.goos }}-${{ matrix.goarch }}
@@ -64,12 +69,12 @@ jobs:
       - name: Checkout code for tag creation
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 获取完整历史记录及所有 tags
+          fetch-depth: 0  # 获取完整历史及所有 tags
 
       - name: Create tag if not exists
         run: |
           git fetch --tags
-          if git rev-parse ${{ github.event.inputs.version }} >/dev/null 2>&1; then
+          if git rev-parse "${{ github.event.inputs.version }}" >/dev/null 2>&1; then
             echo "Tag ${{ github.event.inputs.version }} already exists"
           else
             git tag ${{ github.event.inputs.version }}
