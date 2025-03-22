@@ -2,7 +2,7 @@ name: Build and Release
 
 on:
   release:
-    types: [created]
+    types: [created]  # 仅在创建 Release 时触发
 
 jobs:
   build:
