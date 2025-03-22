@@ -16,7 +16,9 @@ jobs:
         goos: [linux, windows, darwin]
         goarch: [amd64, arm64, arm, mips, mipsle, mips64, mips64le]
         exclude:
-          # 排除 Darwin 下不支持的 MIPS 架构
+          # Darwin 平台只支持 amd64 和 arm64
+          - goos: darwin
+            goarch: arm
           - goos: darwin
             goarch: mips
           - goos: darwin
@@ -25,7 +27,7 @@ jobs:
             goarch: mips64
           - goos: darwin
             goarch: mips64le
-          # 排除 Windows 下不支持的 MIPS 架构
+          # Windows 平台排除不支持的 MIPS 架构
           - goos: windows
             goarch: mips
           - goos: windows
